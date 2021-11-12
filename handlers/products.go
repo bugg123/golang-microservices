@@ -16,63 +16,48 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/bugg123/golang-microservices/data"
+	"github.com/gorilla/mux"
 )
 
-// A list of products returns in the response
-// swagger:response productsResponse
-type productsResponseWrapper struct {
-	// All products in the system
-	// in:body
-	Body []data.Product
-}
-
-// swagger:response noContent
-type productsNoContent struct{}
-
-// swagger:parameters deleteProduct
-type productIDParamaterWrapper struct {
-	// in: path
-	// required: true
-	ID int `json:"id"`
-}
+type KeyProduct struct{}
 
 // Products is a http.Handler
 type Products struct {
 	l *log.Logger
+	v *data.Validation
 }
 
-func NewProducts(l *log.Logger) *Products {
-	return &Products{l}
+// NewProducts returns a new Products handler with the given logger
+func NewProducts(l *log.Logger, v *data.Validation) *Products {
+	return &Products{l, v}
 }
 
-type KeyProduct struct{}
+// ErrInvalidProductPath is an error message when the product path is not valid
+var ErrInvalidProductPath = fmt.Errorf("Invalid Path, path should be /products/[id]")
 
-func (p Products) MiddlewareProductValidation(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		prod := &data.Product{}
+// GenericError is a generic error message returned by a server
+type GenericError struct {
+	Message string `json:"message"`
+}
 
-		err := prod.FromJSON(r.Body)
-		if err != nil {
-			http.Error(w, "Unable to unmarshal json", http.StatusBadRequest)
-			return
-		}
+// ValidationError is a collection of validation error messages
+type ValidationError struct {
+	Message string `json:"message"`
+}
 
-		// validate the product
-		err = prod.Validate()
-		if err != nil {
-			p.l.Println("[ERROR] validating product", err)
-			http.Error(w, fmt.Sprintf("Error validating product: %s", err), http.StatusBadRequest)
-			return
-		}
+func getProductID(r *http.Request) int {
+	vars := mux.Vars(r)
 
-		ctx := context.WithValue(r.Context(), KeyProduct{}, prod)
-		req := r.WithContext(ctx)
-		next.ServeHTTP(w, req)
-	})
+	// convert the id into an integer and return nil, err
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		panic(err)
+	}
+	return id
 }

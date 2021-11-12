@@ -2,6 +2,14 @@ basePath: /
 consumes:
 - application/json
 definitions:
+  GenericError:
+    description: GenericError is a generic error message returned by a server
+    properties:
+      message:
+        type: string
+        x-go-name: Message
+    type: object
+    x-go-package: github.com/bugg123/golang-microservices/handlers
   Product:
     description: Product defines the structure for an API product
     properties:
@@ -39,6 +47,14 @@ definitions:
     - sku
     type: object
     x-go-package: github.com/bugg123/golang-microservices/data
+  ValidationError:
+    description: ValidationError is a collection of validation error messages
+    properties:
+      message:
+        type: string
+        x-go-name: Message
+    type: object
+    x-go-package: github.com/bugg123/golang-microservices/handlers
 info:
   description: Documentation for Product APIVersion
   title: of Product APIVersion
@@ -56,6 +72,15 @@ paths:
     post:
       description: Create a new product
       operationId: createProduct
+      parameters:
+      - description: |-
+          Product data structure to Update or Create.
+          Note: the id field is ignored by update and create operations
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/Product'
       responses:
         "200":
           $ref: '#/responses/productResponse'
@@ -68,6 +93,22 @@ paths:
     put:
       description: Updates a product in the database
       operationId: updateProduct
+      parameters:
+      - description: |-
+          Product data structure to Update or Create.
+          Note: the id field is ignored by update and create operations
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/Product'
+      - description: The id of the product for which the operation relates
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+        x-go-name: ID
       responses:
         "201":
           $ref: '#/responses/noContentResponse'
@@ -81,13 +122,6 @@ paths:
     delete:
       description: Deletes a product from the database
       operationId: deleteProduct
-      parameters:
-      - format: int64
-        in: path
-        name: id
-        required: true
-        type: integer
-        x-go-name: ID
       responses:
         "201":
           $ref: '#/responses/noContent'
@@ -96,10 +130,22 @@ paths:
 produces:
 - application/json
 responses:
-  noContent:
-    description: ""
+  errorResponse:
+    description: Generic error message returned as a string
+    schema:
+      $ref: '#/definitions/GenericError'
+  errorValidation:
+    description: Validation errors defined as an array of strings
+    schema:
+      $ref: '#/definitions/ValidationError'
+  noContentResponse:
+    description: No content is returned by this API endpoint
+  productResponse:
+    description: Data structure representing a single product
+    schema:
+      $ref: '#/definitions/Product'
   productsResponse:
-    description: A list of products returns in the response
+    description: A list of products
     schema:
       items:
         $ref: '#/definitions/Product'

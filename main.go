@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/bugg123/golang-microservices/data"
 	"github.com/bugg123/golang-microservices/handlers"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
@@ -15,7 +16,9 @@ import (
 
 func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
-	ph := handlers.NewProducts(l)
+	v := data.NewValidation()
+
+	ph := handlers.NewProducts(l, v)
 
 	sm := mux.NewRouter()
 
@@ -39,7 +42,6 @@ func main() {
 	swagger := middleware.SwaggerUI(swaggerOpts, nil)
 	rapiOpts := middleware.RapiDocOpts{SpecURL: "/swagger.yaml", Path: "docs3"}
 	rapi := middleware.RapiDoc(rapiOpts, nil)
-
 
 	getRouter.Handle("/docs", sh)
 	getRouter.Handle("/docs2", swagger)

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"regexp"
 
 	"github.com/go-playground/validator"
 )
@@ -16,34 +15,34 @@ type Product struct {
 	//
 	// required: true
 	// min: 1
-	ID          int     `json:"id"`
+	ID int `json:"id"`
 
 	// the name of this product
 	//
 	// required: true
 	// max length: 255
-	Name        string  `json:"name" validate:"required"`
+	Name string `json:"name" validate:"required"`
 
 	// the description for this product
 	//
 	// required: false
 	// max length: 10000
-	Description string  `json:"description"`
+	Description string `json:"description"`
 
 	// the price for this product
 	//
 	// required: true
 	// min: 0.01
-	Price       float32 `json:"price" validate:"gt=0"`
+	Price float32 `json:"price" validate:"gt=0"`
 
 	// the SKU for this product
 	//
 	// required: true
 	// pattern: [a-z]+-[a-z]+-[a-z]+
-	SKU         string  `json:"sku" validate:"required,sku"`
-	CreatedOn   string  `json:"-"`
-	UpdatedOn   string  `json:"-"`
-	DeletedOn   string  `json:"-"`
+	SKU       string `json:"sku" validate:"required,sku"`
+	CreatedOn string `json:"-"`
+	UpdatedOn string `json:"-"`
+	DeletedOn string `json:"-"`
 }
 
 type Products []*Product
@@ -51,28 +50,6 @@ type Products []*Product
 func (p *Products) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(p)
-}
-
-func (p *Product) FromJSON(r io.Reader) error {
-	d := json.NewDecoder(r)
-	return d.Decode(p)
-}
-
-func (p *Product) Validate() error {
-	validate := validator.New()
-	validate.RegisterValidation("sku", validateSKU)
-	return validate.Struct(p)
-}
-
-func validateSKU(fl validator.FieldLevel) bool {
-	// sku is of format abc-absd-dfsdf
-	re := regexp.MustCompile(`[a-z]+-[a-z]+-[a-z]+`)
-	matches := re.FindAllString(fl.Field().String(), -1)
-
-	if len(matches) != 1 {
-		return false
-	}
-	return true
 }
 
 func GetProducts() Products {
@@ -96,7 +73,7 @@ func UpdateProduct(id int, p *Product) error {
 
 func DeleteProduct(id int) error {
 	i := findIndexByProductID(id)
-	if i == -1{
+	if i == -1 {
 		return ErrProductNotFound
 	}
 	productList = append(productList[:i], productList[i+1])
@@ -109,6 +86,12 @@ func GetProductByID(id int) (*Product, error) {
 		return nil, ErrProductNotFound
 	}
 	return productList[i], nil
+}
+
+func (p *Product) Validate() error {
+	validate := validator.New()
+	validate.RegisterValidation("sku", validateSKU)
+	return validate.Struct(p)
 }
 
 func findIndexByProductID(id int) int {
