@@ -8,6 +8,9 @@ import (
 	"github.com/go-playground/validator"
 )
 
+// ErrProductNotFound is an error raised when a product can not be found in the database
+var ErrProductNotFound = fmt.Errorf("Product not found")
+
 // Product defines the structure for an API product
 // swagger:model
 type Product struct {
@@ -56,27 +59,39 @@ func GetProducts() Products {
 	return productList
 }
 
-func AddProduct(p *Product) {
-	p.ID = getNextID()
-	productList = append(productList, p)
+// AddProduct adds a new product to the database
+func AddProduct(p Product) {
+	// get the next id in sequence
+	maxID := productList[len(productList)-1].ID
+	p.ID = maxID + 1
+	productList = append(productList, &p)
 }
 
-func UpdateProduct(id int, p *Product) error {
-	_, pos, err := findProduct(id)
-	if err != nil {
-		return err
+// UpdateProduct replaces a product in the database with the given
+// item.
+// If a product with the given id does not exist in the database
+// this function returns a ProductNotFound error
+func UpdateProduct(p Product) error {
+	i := findIndexByProductID(p.ID)
+	if i == -1 {
+		return ErrProductNotFound
 	}
-	p.ID = id
-	productList[pos] = p
+
+	// update the product in the DB
+	productList[i] = &p
+
 	return nil
 }
 
+// DeleteProduct deletes a product from the database
 func DeleteProduct(id int) error {
 	i := findIndexByProductID(id)
 	if i == -1 {
 		return ErrProductNotFound
 	}
+
 	productList = append(productList[:i], productList[i+1])
+
 	return nil
 }
 
@@ -110,13 +125,6 @@ func findProduct(id int) (*Product, int, error) {
 		}
 	}
 	return nil, -1, ErrProductNotFound
-}
-
-var ErrProductNotFound = fmt.Errorf("Product not found")
-
-func getNextID() int {
-	lp := productList[len(productList)-1]
-	return lp.ID + 1
 }
 
 var productList = []*Product{
