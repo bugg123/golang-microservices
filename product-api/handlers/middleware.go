@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/bugg123/golang-microservices/data"
+	"github.com/bugg123/golang-microservices/product-api/data"
 )
 
 func (p Products) MiddlewareProductValidation(next http.Handler) http.Handler {

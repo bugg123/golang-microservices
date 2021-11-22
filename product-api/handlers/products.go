@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/bugg123/golang-microservices/data"
+	"github.com/bugg123/golang-microservices/product-api/data"
 	"github.com/gorilla/mux"
 )
 

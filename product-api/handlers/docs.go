@@ -1,6 +1,6 @@
 package handlers
 
-import "github.com/bugg123/golang-microservices/data"
+import "github.com/bugg123/golang-microservices/product-api/data"
 
 //
 // NOTE: Types defined here are purely for documentation purposes
