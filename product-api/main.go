@@ -12,6 +12,7 @@ import (
 	"github.com/bugg123/golang-microservices/product-api/data"
 	"github.com/bugg123/golang-microservices/product-api/handlers"
 	"github.com/go-openapi/runtime/middleware"
+	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -45,6 +46,8 @@ func main() {
 	rapiOpts := middleware.RapiDocOpts{SpecURL: "/swagger.yaml", Path: "docs3"}
 	rapi := middleware.RapiDoc(rapiOpts, nil)
 
+	ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"http://localhost:3000"}))
+
 	getRouter.Handle("/docs", sh)
 	getRouter.Handle("/docs2", swagger)
 	getRouter.Handle("/docs3", rapi)
@@ -52,7 +55,7 @@ func main() {
 
 	s := http.Server{
 		Addr:         ":9090",
-		Handler:      sm,
+		Handler:      ch(sm),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
